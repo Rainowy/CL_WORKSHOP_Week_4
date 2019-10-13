@@ -4,44 +4,51 @@ document.addEventListener("DOMContentLoaded", function () {
     ajaxMethod()
     addSubmitListener()
 
+//todo odświeżanie strony po kasowaniu
+    // todo po dodaniu elementu żeby nie przeładowywało strony
 })
 
 
-function ajaxMethod(methodParam,book) {
+function ajaxMethod(methodParam, book) {
 
     let data
-    // console.log(methodParam)
+    let bookId = ""
     let ajaxParam = ""
     if (methodParam === undefined) {
         ajaxParam = "GET"
-        data = null
     }
-    else if(methodParam === "POST"){
+    else if (methodParam === "POST") {
         ajaxParam = "POST"
         data = JSON.stringify(book)
     }
-        $.ajax({
-            url: "http://localhost:8282/books",
-            data: data,
-            type: ajaxParam,
-            dataType: "json",
-            contentType: "application/json"
-        }).done(function (data) {
-
-            if (ajaxParam = "GET") {
+    else if (methodParam === "DELETE") {
+        ajaxParam = "DELETE"
+        let książka = book.id
+        console.log(książka)
+        bookId = book.id
+    }
+    $.ajax({
+        url: "http://localhost:8282/books/" + bookId,
+        data: data,
+        type: ajaxParam,
+        dataType: "json",
+        contentType: "application/json"
+    }).done(function (data) {
+        if (data !== null && methodParam !== "DELETE") {
+            // if () {
+                console.log(data)
                 printBooks(data)
-            }
-            // else if(ajaxParam = "POST"){
-            //     printBooks(data)
-            // }
+                addDeleteButtonListener()
+            //}
+        }
 
-        }).fail(function (xhr, status, err) {
-            console.log("błąd")
+    }).fail(function (xhr, status, err) {
+        console.log("błąd")
 
-        }).always(function (xhr, status) {
+    }).always(function (xhr, status) {
 
 
-        })
+    })
 
 }
 
@@ -51,16 +58,34 @@ function addSubmitListener() {
     form.addEventListener("submit", function (event) {
 
         let book = getFormParams()
-        console.log(book)
-
         //sprawdzamy czy id z formularza puste, jeśli tak to POST, jeśli nie to PUT
         let formId = document.getElementById("id")
-        if(formId.dataset.id === undefined ){
-           // wysyłamy POSTEm
-            ajaxMethod("POST",book)
+        if (formId.dataset.id === undefined) {
+            // wysyłamy POSTEm
+            ajaxMethod("POST", book)
         }
-
+        else {
+            ajaxMethod("PUT", book)
+        }
+        //event.preventDefault()
     })
+}
+
+function addDeleteButtonListener() {
+
+    let deleteEl = document.querySelectorAll(".delete");
+    console.log(deleteEl)
+
+    deleteEl.forEach(deleteBtn => {
+        deleteBtn.addEventListener("click", function (event) {
+            //let caller = event.target
+            console.log(this)
+            let id = this.parentElement.dataset.id
+            let book = {id}
+            ajaxMethod("DELETE", book)
+        })
+    })
+
 
 }
 
@@ -68,26 +93,29 @@ function printBooks(data) {
 
     let ulEl = document.createElement("ul");
 
-    data.forEach(book => {
+   // if(data !== null) {
+        data.forEach(book => {
 
-        let {newLiEl, newDivEl, newDeleteButton, newModifyButton} = createElements();
+            let {newLiEl, newDivEl, newDeleteButton, newModifyButton} = createElements();
 
-        newLiEl.dataset.id = book.id
-        newLiEl.dataset.isbn = book.isbn
-        newLiEl.dataset.title = book.title
-        newLiEl.dataset.author = book.author
-        newLiEl.dataset.publisher = book.publisher
-        newLiEl.dataset.type = book.type
+            newLiEl.dataset.id = book.id
+            newLiEl.dataset.isbn = book.isbn
+            newLiEl.dataset.title = book.title
+            newLiEl.dataset.author = book.author
+            newLiEl.dataset.publisher = book.publisher
+            newLiEl.dataset.type = book.type
 
-        newLiEl.innerText = "Nazwa: " + book.title + " || Autor: " + book.author
+            newLiEl.innerText = "Nazwa: " + book.title + " || Autor: " + book.author
 
-        newDivEl.innerText = "Id " + book.id + " || Isbn " + book.isbn + " || Publisher " + book.publisher + " || Type " + book.type
+            newDivEl.innerText = "Id " + book.id + " || Isbn " + book.isbn + " || Publisher " + book.publisher + " || Type " + book.type
 
-        newLiEl.appendChild(newDivEl)
-        newLiEl.appendChild(newDeleteButton)
-        newLiEl.appendChild(newModifyButton)
-        ulEl.appendChild(newLiEl)
-    });
+            newLiEl.appendChild(newDivEl)
+            newLiEl.appendChild(newDeleteButton)
+            newLiEl.appendChild(newModifyButton)
+            ulEl.appendChild(newLiEl)
+        });
+   // }
+    //else console.log("data null")
     document.querySelector("body").insertBefore(ulEl, document.querySelector("form"))
 
 }
