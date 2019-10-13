@@ -23,8 +23,12 @@ function ajaxMethod(methodParam, book) {
     }
     else if (methodParam === "DELETE") {
         ajaxParam = "DELETE"
-        let książka = book.id
-        console.log(książka)
+        // let książka = book.id
+        // console.log(książka)
+        bookId = book.id
+    }
+    else {
+        ajaxParam = "PUT"
         bookId = book.id
     }
     $.ajax({
@@ -37,8 +41,9 @@ function ajaxMethod(methodParam, book) {
         if (data !== null && methodParam !== "DELETE") {
             printBooks(data)
             addDeleteButtonListener()
+            addModifyButtonListener()
         }
-        else {//
+        else {  //kasuje element z pasującym id
            let bookToDel = document.querySelector("[data-id=" + "'" + book.id +"'" );
             bookToDel.parentElement.removeChild(bookToDel)
         }
@@ -59,18 +64,50 @@ function addSubmitListener() {
     form.addEventListener("submit", function (event) {
         event.preventDefault()
 
-        let book = getFormParams()
+
+
+        //console.log(book)
 
         //sprawdzamy czy id z formularza puste, jeśli tak to POST, jeśli nie to PUT
         let formId = document.getElementById("id")
         if (formId.dataset.id === undefined) {
+            let book = getFormParams()
             // wysyłamy POSTEm
             ajaxMethod("POST", book)
+            console.log("POSTEEEEM")
         }
-        else {
+        else {  //aktualizacja PUTem
+            let book = getFormParams()
+            book = {formId,book}
+            //todo zmodyfikować aby wysyłało książkę z id
             ajaxMethod("PUT", book)
+            console.log("PUTTEM")
+            console.log(book)
         }
     })
+}
+
+function addModifyButtonListener() {
+
+    let formId = document.getElementById("id")
+
+    let modifyEl = document.querySelectorAll(".modify");
+    console.log(modifyEl)
+
+    let id=""
+    modifyEl.forEach(modifyBtn =>{
+        modifyBtn.addEventListener("click",function () {
+            console.log(this.parentElement.dataset.id)
+             id = this.parentElement.dataset.id
+            formId.dataset.id = this.parentElement.dataset.id
+        })
+    })
+    // console.log(id)
+    //
+    // formId.dataset.id = id
+
+    // let {isbn, title, author, publisher,type} = getFormParams();
+    // let book = {id,isbn,title,author,publisher,type}
 }
 
 function addDeleteButtonListener() {
@@ -85,8 +122,6 @@ function addDeleteButtonListener() {
             let id = this.parentElement.dataset.id
             let book = {id}
             ajaxMethod("DELETE", book)
-               //console.log("do kasowania")
-
         })
     })
 
@@ -118,8 +153,6 @@ function printBooks(data) {
             document.querySelector("body").insertBefore(ulEl, document.querySelector("form"))
         });
     }
-
-
 }
 
 function createElements() {
