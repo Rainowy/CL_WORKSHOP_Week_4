@@ -35,11 +35,12 @@ function ajaxMethod(methodParam, book) {
         contentType: "application/json"
     }).done(function (data) {
         if (data !== null && methodParam !== "DELETE") {
-            // if () {
-            console.log(data)
             printBooks(data)
             addDeleteButtonListener()
-            //}
+        }
+        else {//
+           let bookToDel = document.querySelector("[data-id=" + "'" + book.id +"'" );
+            bookToDel.parentElement.removeChild(bookToDel)
         }
 
     }).fail(function (xhr, status, err) {
@@ -84,6 +85,8 @@ function addDeleteButtonListener() {
             let id = this.parentElement.dataset.id
             let book = {id}
             ajaxMethod("DELETE", book)
+               //console.log("do kasowania")
+
         })
     })
 
@@ -92,17 +95,17 @@ function addDeleteButtonListener() {
 
 function printBooks(data) {
 
-    let ulEl = document.createElement("ul");
-
     if (data.length === undefined) {    //data is single object
 
         let {newLiEl, newDivEl, newDeleteButton, newModifyButton} = createElements();
 
         newLiEl = setDataAndAppend(newLiEl, newDivEl, newDeleteButton, newModifyButton, data);
 
-        ulEl.appendChild(newLiEl)
+        document.querySelector("ul").appendChild(newLiEl)
     }
     else {  //data is an array
+
+        let ulEl = document.createElement("ul");
 
         data.forEach(book => {
 
@@ -111,10 +114,11 @@ function printBooks(data) {
             newLiEl = setDataAndAppend(newLiEl, newDivEl, newDeleteButton, newModifyButton, book);
 
             ulEl.appendChild(newLiEl)
+
+            document.querySelector("body").insertBefore(ulEl, document.querySelector("form"))
         });
     }
 
-    document.querySelector("body").insertBefore(ulEl, document.querySelector("form"))
 
 }
 
