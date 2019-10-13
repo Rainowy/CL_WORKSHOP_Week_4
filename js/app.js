@@ -36,9 +36,9 @@ function ajaxMethod(methodParam, book) {
     }).done(function (data) {
         if (data !== null && methodParam !== "DELETE") {
             // if () {
-                console.log(data)
-                printBooks(data)
-                addDeleteButtonListener()
+            console.log(data)
+            printBooks(data)
+            addDeleteButtonListener()
             //}
         }
 
@@ -56,8 +56,10 @@ function addSubmitListener() {
 
     let form = document.querySelector("form");
     form.addEventListener("submit", function (event) {
+        event.preventDefault()
 
         let book = getFormParams()
+
         //sprawdzamy czy id z formularza puste, jeśli tak to POST, jeśli nie to PUT
         let formId = document.getElementById("id")
         if (formId.dataset.id === undefined) {
@@ -67,7 +69,6 @@ function addSubmitListener() {
         else {
             ajaxMethod("PUT", book)
         }
-        //event.preventDefault()
     })
 }
 
@@ -93,29 +94,26 @@ function printBooks(data) {
 
     let ulEl = document.createElement("ul");
 
-   // if(data !== null) {
+    if (data.length === undefined) {    //data is single object
+
+        let {newLiEl, newDivEl, newDeleteButton, newModifyButton} = createElements();
+
+        newLiEl = setDataAndAppend(newLiEl, newDivEl, newDeleteButton, newModifyButton, data);
+
+        ulEl.appendChild(newLiEl)
+    }
+    else {  //data is an array
+
         data.forEach(book => {
 
             let {newLiEl, newDivEl, newDeleteButton, newModifyButton} = createElements();
 
-            newLiEl.dataset.id = book.id
-            newLiEl.dataset.isbn = book.isbn
-            newLiEl.dataset.title = book.title
-            newLiEl.dataset.author = book.author
-            newLiEl.dataset.publisher = book.publisher
-            newLiEl.dataset.type = book.type
+            newLiEl = setDataAndAppend(newLiEl, newDivEl, newDeleteButton, newModifyButton, book);
 
-            newLiEl.innerText = "Nazwa: " + book.title + " || Autor: " + book.author
-
-            newDivEl.innerText = "Id " + book.id + " || Isbn " + book.isbn + " || Publisher " + book.publisher + " || Type " + book.type
-
-            newLiEl.appendChild(newDivEl)
-            newLiEl.appendChild(newDeleteButton)
-            newLiEl.appendChild(newModifyButton)
             ulEl.appendChild(newLiEl)
         });
-   // }
-    //else console.log("data null")
+    }
+
     document.querySelector("body").insertBefore(ulEl, document.querySelector("form"))
 
 }
@@ -133,6 +131,7 @@ function createElements() {
     let newModifyButton = document.createElement("button")
     newModifyButton.innerText = "MODYFIKUJ"
     newModifyButton.classList.add("modify")
+
     return {newLiEl, newDivEl, newDeleteButton, newModifyButton};
 }
 
@@ -145,5 +144,25 @@ function getFormParams() {
     let type = document.getElementById("type").value
 
     return {isbn, title, author, publisher, type}
+}
+
+function setDataAndAppend(newLiEl, newDivEl, newDeleteButton, newModifyButton, book) {
+
+    newLiEl.dataset.id = book.id
+    newLiEl.dataset.isbn = book.isbn
+    newLiEl.dataset.title = book.title
+    newLiEl.dataset.author = book.author
+    newLiEl.dataset.publisher = book.publisher
+    newLiEl.dataset.type = book.type
+
+    newLiEl.innerText = "Nazwa: " + book.title + " || Autor: " + book.author
+
+    newDivEl.innerText = "Id " + book.id + " || Isbn " + book.isbn + " || Publisher " + book.publisher + " || Type " + book.type
+
+    newLiEl.appendChild(newDivEl)
+    newLiEl.appendChild(newDeleteButton)
+    newLiEl.appendChild(newModifyButton)
+
+    return newLiEl
 }
 
