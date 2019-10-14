@@ -1,8 +1,9 @@
 document.addEventListener("DOMContentLoaded", function () {
     console.log("DOM content fully loaded and parsed")
-
     ajaxMethod()
     addSubmitListener()
+    //addLiElementListener()
+
 
 //todo odświeżanie strony po kasowaniu
     // todo po dodaniu elementu żeby nie przeładowywało strony
@@ -10,7 +11,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 function ajaxMethod(methodParam, book) {
-
+    //addLiElementListener()
     let data
     let bookId = ""
     let ajaxParam = ""
@@ -30,6 +31,7 @@ function ajaxMethod(methodParam, book) {
     else {
         ajaxParam = "PUT"
         bookId = book.id
+        data = JSON.stringify(book)
     }
     $.ajax({
         url: "http://localhost:8282/books/" + bookId,
@@ -38,24 +40,39 @@ function ajaxMethod(methodParam, book) {
         dataType: "json",
         contentType: "application/json"
     }).done(function (data) {
-        if (data !== null && methodParam !== "DELETE") {
-            printBooks(data)
-            addDeleteButtonListener()
-            addModifyButtonListener()
+        console.log(data)
+        if (data !== null && (methodParam !== "DELETE" && methodParam !== "PUT")) {
+            printBooks(data, "POST")
+            //addLiElementListener()
+
+            //takbyło
+             addDeleteButtonListener()
+             addModifyButtonListener()
+
+
         }
-        else {  //kasuje element z pasującym id
-           let bookToDel = document.querySelector("[data-id=" + "'" + book.id +"'" );
+        else if (methodParam === "DELETE") {  //kasuje element z pasującym id
+            // let bookToDel = document.querySelector("[data-id=" + "'" + book.id + "'");
+            let bookToDel = document.querySelector("[data-id=" + "'" + book.id + "'");
             bookToDel.parentElement.removeChild(bookToDel)
+            // addLiElementListener()
+        }
+        else {
+            // addLiElementListener()
+            let bookToModify = document.querySelector("[data-id=" + "'" + book.id + "'");
+            console.log("modyfikacja")
+            printBooks(book, "PUT", bookToModify)
         }
 
     }).fail(function (xhr, status, err) {
         console.log("błąd")
 
     }).always(function (xhr, status) {
+        //addLiElementListener()
 
-
+//addLiElementListener()
     })
-
+    // addLiElementListener()
 }
 
 function addSubmitListener() {
@@ -65,11 +82,11 @@ function addSubmitListener() {
         event.preventDefault()
 
 
-
         //console.log(book)
 
         //sprawdzamy czy id z formularza puste, jeśli tak to POST, jeśli nie to PUT
         let formId = document.getElementById("id")
+        //if (formId.dataset.id === "") {
         if (formId.dataset.id === undefined) {
             let book = getFormParams()
             // wysyłamy POSTEm
@@ -77,13 +94,18 @@ function addSubmitListener() {
             console.log("POSTEEEEM")
         }
         else {  //aktualizacja PUTem
-            let book = getFormParams()
-            book = {formId,book}
+            //let book = getFormParams()
+            //book = {formId,book}
+            let {isbn, title, author, publisher, type} = getFormParams()
+            let id = formId.dataset.id
+            let book = {id, isbn, title, author, publisher, type}
             //todo zmodyfikować aby wysyłało książkę z id
             ajaxMethod("PUT", book)
             console.log("PUTTEM")
             console.log(book)
         }
+        console.log("SPAGETTI")
+
     })
 }
 
@@ -94,12 +116,19 @@ function addModifyButtonListener() {
     let modifyEl = document.querySelectorAll(".modify");
     console.log(modifyEl)
 
-    let id=""
-    modifyEl.forEach(modifyBtn =>{
-        modifyBtn.addEventListener("click",function () {
+    let id = ""
+    modifyEl.forEach(modifyBtn => {
+        modifyBtn.addEventListener("click", function (event) {
+            event.stopImmediatePropagation()
             console.log(this.parentElement.dataset.id)
-             id = this.parentElement.dataset.id
+            id = this.parentElement.dataset.id
             formId.dataset.id = this.parentElement.dataset.id
+
+            document.getElementById("title").setAttribute("value", this.parentElement.dataset.title)
+            document.getElementById("author").setAttribute("value", this.parentElement.dataset.author)
+            document.getElementById("isbn").setAttribute("value", this.parentElement.dataset.isbn)
+            document.getElementById("publisher").setAttribute("value", this.parentElement.dataset.publisher)
+            document.getElementById("type").setAttribute("value", this.parentElement.dataset.type)
         })
     })
     // console.log(id)
@@ -112,31 +141,126 @@ function addModifyButtonListener() {
 
 function addDeleteButtonListener() {
 
-    let deleteEl = document.querySelectorAll(".delete");
-    console.log(deleteEl)
+    // let deleteEl = document.querySelectorAll(".delete");
+    // console.log(deleteEl)
+    //
+    // deleteEl.forEach(deleteBtn => {
+    //     deleteBtn.addEventListener("click", function (event) {
+    //         event.stopImmediatePropagation()
+    //         //let caller = event.target
+    //         console.log(this)
+    //         let id = this.parentElement.dataset.id
+    //         let book = {id}
+    //         ajaxMethod("DELETE", book)
+    //     })
+    // })
+    $('li').on('click', '.delete', function () {
+        let id = this.parentElement.dataset.id
+        let book = {id}
+        ajaxMethod("DELETE", book)
 
-    deleteEl.forEach(deleteBtn => {
-        deleteBtn.addEventListener("click", function (event) {
-            //let caller = event.target
-            console.log(this)
-            let id = this.parentElement.dataset.id
-            let book = {id}
-            ajaxMethod("DELETE", book)
-        })
-    })
 
+        //do something
+    });
 
 }
 
-function printBooks(data) {
+function addLiElementListener() {
+    // var ulEl = document.querySelector("ul")
+    // var ul = $("ul")
+    // ul.on('click', 'li', function () {
+    //     //this.firstElementChild.classList.add("hidden")
+    //     this.firstElementChild.classList.toggle("hidden")
+    //
+    // })
+    // let liEl = document.querySelectorAll("li");
+    // liEl.forEach(li => {
+    //     //li.firstElementChild.classList.add("hidden")
+    //     li.addEventListener("click", function (event) {
+    //          event.stopPropagation()
+    //         this.firstElementChild.classList.toggle("hidden")
+    //     })
+    // })
+    $('ul').on('click', 'li', function () {
+        // let id = this.parentElement.dataset.id
+        console.log("test")
+        // let book = {id}
+        // ajaxMethod("DELETE", book)
+        // $(this).first().toggleClass("hidden")
+        //this.querySelector("div").classList.toggle("hidden")
+        this.firstElementChild.classList.toggle("hidden")
+        console.log("UKRYWAMY")
+
+
+        //do something
+    });
+
+}
+
+function printBooks(data, ajaxParam, bookToModify) {
+    // if (data === undefined) {
+    //     let {newLiEl, newDivEl, newDeleteButton, newModifyButton} = createElements();
+    //
+    //     newLiEl = setDataAndAppend(newLiEl, newDivEl, newDeleteButton, newModifyButton, data);
+    //
+    //     document.querySelector("ul").replaceChild(bookToModify, newLiEl)
+    // }
 
     if (data.length === undefined) {    //data is single object
+        if (ajaxParam === "POST") {
 
-        let {newLiEl, newDivEl, newDeleteButton, newModifyButton} = createElements();
+            let {newLiEl, newDivEl, newDeleteButton, newModifyButton} = createElements();
 
-        newLiEl = setDataAndAppend(newLiEl, newDivEl, newDeleteButton, newModifyButton, data);
+            newLiEl = setDataAndAppend(newLiEl, newDivEl, newDeleteButton, newModifyButton, data);
 
-        document.querySelector("ul").appendChild(newLiEl)
+            document.querySelector("ul").appendChild(newLiEl)
+
+            // let {newLiEl, newDivEl, newDeleteButton, newModifyButton} = createElements();
+            //
+            // newLiEl = setDataAndAppend(newLiEl, newDivEl, newDeleteButton, newModifyButton, data);
+            //
+            // document.querySelector("ul").replaceChild(bookToModify,newLiEl)
+            addLiElementListener()
+            let form = document.querySelector("form");
+            form.reset()
+        }
+        else {
+            console.log(bookToModify)
+            let {newLiEl, newDivEl, newDeleteButton, newModifyButton} = createElements();
+
+
+            newLiEl = setDataAndAppend(newLiEl, newDivEl, newDeleteButton, newModifyButton, data);
+            // ewLinEl.firstElementChild.addEventListener("click", function () {
+            //
+            //
+            // })
+            // newLiEl.firstElementChild.addEventListener("click",function () {
+            //     newLiEl.classList.toggle("hidden")
+            // })
+            document.querySelector("ul").replaceChild(newLiEl, bookToModify)
+            //addLiElementListener()
+            //ajaxMethod()
+
+            let formId = document.getElementById("id")
+            //formId.dataset.id = undefined
+            formId.removeAttribute("data-id")
+            // let form = document.querySelector("form");
+            // form.reset()
+
+            // addLiElementListener()
+             let allInputs = document.querySelectorAll("input");
+            allInputs.forEach(input => {
+                input.removeAttribute("value")
+            })
+            let form = document.querySelector("form");
+            form.reset()
+            addDeleteButtonListener()
+            addModifyButtonListener()
+            addLiElementListener()
+
+
+        }
+
     }
     else {  //data is an array
 
@@ -151,8 +275,13 @@ function printBooks(data) {
             ulEl.appendChild(newLiEl)
 
             document.querySelector("body").insertBefore(ulEl, document.querySelector("form"))
+             //addLiElementListener()
         });
     }
+    console.log("KUUUURWAAAA")
+    addLiElementListener()
+
+
 }
 
 function createElements() {
