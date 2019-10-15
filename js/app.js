@@ -42,6 +42,16 @@ function ajaxMethod(methodParam, book) {
         else if (methodParam === "DELETE") {  //kasuje element z pasującym id
             let bookToDel = document.querySelector("[data-id=" + "'" + book.id + "'");
             bookToDel.parentElement.removeChild(bookToDel)
+            //usuwa atrybut do rozpoznania czy PUT czy POST
+            let formId = document.getElementById("id")
+            formId.removeAttribute("data-id")
+
+             let form = document.querySelector("form");
+            //usuwa pomocnicze wpisy w formularzu
+            form.querySelectorAll("input").forEach(input => {
+                input.removeAttribute("value")
+            })
+             form.reset()//kasuje formularz
         }
         else {
             let bookToModify = document.querySelector("[data-id=" + "'" + book.id + "'");
@@ -110,6 +120,7 @@ function addDeleteButtonListener() {
         let id = this.parentElement.dataset.id
         let book = {id}
         ajaxMethod("DELETE", book)
+        //todo sproóbować wstawić form reset i dataset.id ustawić na undefined aby w momencie modyfikacji nie wieszało
     });
 }
 
@@ -192,13 +203,13 @@ function createElements() {
 
 function getFormParams() {
 
-    let isbn = document.getElementById("isbn").value
-    let title = document.getElementById("title").value
-    let author = document.getElementById("author").value
-    let publisher = document.getElementById("publisher").value
-    let type = document.getElementById("type").value
+    let isbn = document.getElementById("isbn").value;
+    let title = document.getElementById("title").value;
+    let author = document.getElementById("author").value;
+    let publisher = document.getElementById("publisher").value;
+    let type = document.getElementById("type").value;
 
-    return {isbn, title, author, publisher, type}
+    return {isbn, title, author, publisher, type};
 }
 
 function setDataAndAppend(newLiEl, newDivEl, newDeleteButton, newModifyButton, book) {
